@@ -1,0 +1,135 @@
+---
+title: "Fitbit Analysis"
+author: "Sara Kim"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(ggplot2)
+```
+
+```{r}
+fitbit = readxl::read_xlsx("./data/final.xlsx") %>%
+  janitor::clean_names()
+```
+
+Goal:
+The primary exposure and outcome will be the mean number of steps/day and the risk of spontaneous preterm delivery (<37 weeks), respectively. We will assess if the mean number of steps/day will differ between women that spontaneously deliver preterm versus those that deliver at term. 
+
+## EDA
+
+```{r}
+fitbit[,c(3:5)] %>%
+ summary()
+```
+
+Comparison:
+United States: 5,117 steps. This is about 2.5 miles or about 4 kilometers each day.
+Switzerland: 9,650 steps. This is about 4.8 miles or 8 kilometers each day.
+Japan: 7,168 steps. This is about 3.5 miles or 6 kilometers each day.
+
+We can notice large variance in steps and higher steps than us mean.
+
+```{r}
+ggplot(fitbit, aes(x=step_total)) +
+  geom_histogram(color ="black", fill="white")
+```
+
+```{r}
+fitbit %>%
+  group_by(term) %>%
+  summarize(median_steps = median(step_total),
+         mean_steps = mean(step_total),
+         sd_steps = sd(step_total)) %>%
+  knitr::kable()
+```
+Non-preterm has a larger variance but both groups have very similar number of steps.
+
+## Longitudinal Effect
+
+```{r}
+fitbit = fitbit %>%
+  mutate(
+      day_ctg = case_when(
+      day < 92 ~ "-91",  
+      day %in% 92:140 ~ "92-140",
+      day %in% 141:189 ~ "141-189",
+      day %in% 190:238 ~ "190-238",
+      day %in% 239:288 ~ "239-288"
+    ),
+    day_ctg = fct_relevel(day_ctg, "-91")) 
+```
+
+```{r}
+fitbit %>%
+  ggplot(aes(x = day_ctg, y = step_total, group = id)) + geom_line(aes(alpha = 0.2)) + stat_smooth(aes(group = 1), method = "lm", se = FALSE) +
+    stat_summary(aes(group = 1), geom = "point", color = "green", fun.y = mean, shape = 17, size = 3) +
+    facet_grid(. ~ term)
+```
+
+I windowed the gestational age (day) into 5 windows. It does not seem like there is a difference in the steps based on the gestational age.
+
+## Median Steps per Day
+
+```{r}
+fitbit_median = fitbit %>%
+  group_by(id, term) %>%
+  summarise(median_step = median(step_total),
+            mean_step = mean(step_total),
+            ga_delivery = mean(ga_delivery))
+
+fitbit_median %>%
+  group_by(term) %>%
+  summarise(n = n(),
+            percent = n()/nrow(fitbit_median)) %>%
+  knitr::kable()
+
+ggplot(fitbit_median, aes(term,median_step, fill=term)) + 
+    geom_boxplot()
+
+fitbit_median %>%
+  group_by(term) %>%
+  summarise(n = n(),
+            median_step= median(median_step))
+```
+
+Looking at the median steps for each indivisual, the median of the median steps seems similar between the two groups. The median value of the pre-term birth cases is actually slightly higher (`r 7765 - 6971` steps).
+
+```{r}
+term_fct = as.factor(ifelse(fitbit_median$term == "TERM", 0, 1))
+fitbit_median["term_fct"] = term_fct
+
+fitbit_median %>%
+  ggplot(aes(x=median_step, y=term_fct)) +
+  geom_point()
+```
+
+## logistic regression
+
+```{r}
+glm <- glm(term_fct ~ median_step, family=binomial(link='logit'), data = fitbit_median) 
+
+glm  %>% 
+  broom::tidy() %>%
+  knitr::kable(digits = 3)
+```
+
+there is no statistically significant evidence that there is a linear relationship between log odds of pre-term birth and median steps per day.
+
+## Relationship Between Delivery Date and Median Steps Per Day
+
+```{r}
+fitbit_median %>%
+  ggplot(aes(x=median_step, y= ga_delivery, color = term)) +
+  geom_point()
+```
+
+```{r}
+res <- cor.test(fitbit_median$median_step, fitbit_median$ga_delivery, 
+                    method = "pearson")
+res
+res$p.value
+```
+
