@@ -12,7 +12,10 @@ library(ggplot2)
 
 ```{r}
 fitbit = readxl::read_xlsx("./data/final.xlsx") %>%
-  janitor::clean_names()
+  janitor::clean_names() %>%
+  filter(ga_delivery > 200 | day > ga_delivery) %>% 
+  #removed one case of miscarriage
+  mutate(id = as.factor(id))
 ```
 
 Goal:
@@ -38,6 +41,10 @@ ggplot(fitbit, aes(x=step_total)) +
 ```
 
 ```{r}
+# removing step_total with less than 300\
+fitbit = fitbit %>%
+  filter(step_total > 300)
+
 fitbit %>%
   group_by(term) %>%
   summarize(median_steps = median(step_total),
@@ -49,6 +56,7 @@ Non-preterm has a larger variance but both groups have very similar number of st
 
 ## Longitudinal Effect
 
+I sectioned the days into 5 windows.
 ```{r}
 fitbit = fitbit %>%
   mutate(
@@ -64,12 +72,31 @@ fitbit = fitbit %>%
 
 ```{r}
 fitbit %>%
-  ggplot(aes(x = day_ctg, y = step_total, group = id)) + geom_line(aes(alpha = 0.2)) + stat_smooth(aes(group = 1), method = "lm", se = FALSE) +
+  ggplot(aes(x = day_ctg, y = step_total, group = id)) + geom_point(aes(alpha = 0.2)) + geom_line(aes(alpha = 0.2)) + stat_smooth(aes(group = 1), method = "lm", se = FALSE) +
     stat_summary(aes(group = 1), geom = "point", color = "green", fun.y = mean, shape = 17, size = 3) +
-    facet_grid(. ~ term)
+    facet_grid(. ~ term)  + theme(legend.position = "none")
+```
+I windowed the gestational age (day) into 5 windows.
+
+The vertical points we see above are the steps data observed in these five time windows (day < 92, 91 < day < 141,..., 238 < day < 289).
+
+It does not seem like there is a noticeable difference in the steps based on the gestational age.
+
+I will also plotted the days vs step_total without grouping the days.
+
+```{r}
+fitbit %>%
+  filter(term == "PRE") %>%
+  ggplot(aes(x = day, y = step_total, group = id, color = id)) + geom_point() + geom_line(aes(alpha = 0.2)) + stat_smooth(aes(group = 1), method = "lm", se = FALSE) +
+    stat_summary(aes(group = 1), geom = "point", color = "green", fun.y = mean, shape = 17, size = 3)  + theme(legend.position = "none")
+
+fitbit %>%
+  filter(term == "TERM") %>%
+  ggplot(aes(x = day, y = step_total, group = id)) + geom_point(aes(alpha = 0.1)) + geom_line(aes(alpha = 0.1)) + stat_smooth(aes(group = 1), method = "lm", se = FALSE) +
+    stat_summary(aes(group = 1), geom = "point", color = "green", fun.y = mean, shape = 17, size = 3)  
 ```
 
-I windowed the gestational age (day) into 5 windows. It does not seem like there is a difference in the steps based on the gestational age.
+We do see a slight downward trend in the steps for those in the pre-term birth group. However, it seems like indivisuals' observations are not spread across the time evenly. For instance, the purple line we see above is not observerd before the 100 gestational day. That patient's observed values have extremely low values and it seems to be causing to lower the regression line in the later time points.
 
 ## Median Steps per Day
 
@@ -133,3 +160,24 @@ res
 res$p.value
 ```
 
+At significance level of 5%, we do not reject the null hypothesis and can conclude that there is not significant correlation between delivery date and median steps per day.
+
+## Fisher's Exact Test
+
+```{r}
+# calculating cutoff value
+fitbit_median$median_step %>% median()
+# 6987.5
+
+fitbit_median = fitbit_median %>% 
+  mutate(step_group = ifelse(median_step < 6987.5, "low", "high"))
+
+step_mat = fitbit_median %>%
+  group_by(step_group, term) %>%
+  summarise(n = n()) %>%
+  pull(n) %>%
+  matrix(nrow = 2)
+
+fisher.test(step_mat)
+```
+The p-value calculated for the test does not provide any evidence against the assumption of independence. In this example this means that we cannot confidently claim any difference in median_steps for the pre-term birth group and term-birth group.
