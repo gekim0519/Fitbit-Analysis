@@ -5,7 +5,7 @@ Sara Kim
 
 **Directory**
 
-For detailed analysis of the data, click
+To view the code and detailed analysis of the data, click
 [here](https://github.com/gekim0519/Fitbit-Analysis/blob/master/fitbit_analysis.pdf).
 
 **Background**
