@@ -3,19 +3,24 @@ Prospective Cohort Study among Nulliparous Women
 ================
 Sara Kim
 
+**Directory**
+
+For detailed analysis of the data, click
+[here](https://github.com/gekim0519/Fitbit-Analysis/blob/master/fitbit_analysis.pdf).
+
 **Background**
 
 Preterm labor occurs when regular contractions result in the opening of
 your cervix after week 20 and before week 37 of pregnancy. Premature
 infants are at greater risk for cerebral palsy, delays in development,
-hearing problems, and sight problems. The earlier premature birth
-happens, the greater the health risks for the baby. There are several
-risk factors for preterm labor and preterm birth. These include having
-history of delivering preterm, diabetes, high blood pressure, being
-pregnant with more than one baby, among many others. However, the cause
-of preterm birth is often not known and better understanding of the
-causes and mechanisms will advance the development of solutions to
-prevent preterm birth. To find if higher amount of daily activity can
+hearing problems, and sight problems (1). The earlier premature birth
+happens, the greater the health risks for the baby (2). There are
+several risk factors for preterm labor and preterm birth. These include
+having history of delivering preterm, diabetes, high blood pressure,
+being pregnant with more than one baby, among many others. However, the
+cause of preterm birth is often not known (3) and better understanding
+of the causes and mechanisms will advance the development of solutions
+to prevent preterm birth. To find if higher amount of daily activity can
 reduce the risk of preterm birth, this research will assess whether the
 mean number of steps/day differs between women that spontaneously
 deliver preterm versus those that deliver at term. Also, we will test
@@ -68,7 +73,7 @@ pre-term birth group and term-birth group. Pearson’s correlation
 coefficient calculated as 0.096, had a p-value of 0.2785. At
 significance level of 5%, we do not reject the null hypothesis and can
 conclude that there is not significant correlation between delivery date
-and median steps per day. I
+and median steps per day.
 
 **Discussion**
 
@@ -93,3 +98,14 @@ pregnancy, another statistical analysis that can be done is longitudinal
 data analysis. Even though the median of the median number of steps per
 day may not differ between the two groups, they may have differed in
 different time periods and it is worth looking into.
+
+**Refrerence**
+
+1.  “Preterm Labor and Birth: Condition Information”. National
+    Institutes of Health. 3 November 2014. Archived from the original on
+    2 April 2015. Retrieved 7 March2015.
+2.  Preterm Labor:
+    <https://www.mayoclinic.org/diseases-conditions/preterm-labor/symptoms-causes/syc-20376842>
+3.  World Health Organization (November 2014). “Preterm birth Fact sheet
+    N°363”. who.int. Archivedfrom the original on 7 March 2015.
+    Retrieved 6 March 2015.
